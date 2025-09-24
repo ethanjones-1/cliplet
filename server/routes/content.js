@@ -22,12 +22,26 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const allowedTypes = /pdf|doc|docx|txt|mp4|avi|mov|mkv|webm/;
     const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
     
-    if (mimetype && extname) {
+    // Allow common text MIME types and other supported formats
+    const allowedMimeTypes = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'text/plain',
+      'text/txt',
+      'video/mp4',
+      'video/avi',
+      'video/quicktime',
+      'video/x-msvideo',
+      'video/webm'
+    ];
+    const mimeTypeOk = allowedMimeTypes.includes(file.mimetype) || file.mimetype.startsWith('text/');
+    
+    if (extname || mimeTypeOk) {
       return cb(null, true);
     } else {
-      cb('Error: Only documents and videos are allowed!');
+      cb(`Error: File type not supported. Allowed: ${file.mimetype}, Extension: ${path.extname(file.originalname)}`);
     }
   },
   limits: {
